@@ -39,4 +39,8 @@ Create/update request body:
 
 Swagger is available at `/swagger` while the application runs in the Development environment.
 
+## Authentication
+
+Register with `POST /api/auth/register`, then call `POST /api/auth/login`. In Swagger, click **Authorize** and paste the returned JWT token. All product endpoints require an authenticated user in the `Admin` or `User` role.
+
 The default connection string uses SQL Server LocalDB. Change `ConnectionStrings:DefaultConnection` in `CleanCrud.Api/appsettings.json` to use your SQL Server instance before running the database update command.

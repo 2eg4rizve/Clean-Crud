@@ -1,14 +1,18 @@
 using CleanCrud.Domain.Entities;
+using CleanCrud.Infrastructure.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace CleanCrud.Infrastructure.Persistence;
 
-public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : DbContext(options)
+public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : IdentityDbContext<ApplicationUser>(options)
 {
     public DbSet<Product> Products => Set<Product>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        base.OnModelCreating(modelBuilder);
+
         modelBuilder.Entity<Product>(entity =>
         {
             entity.ToTable("Products");
@@ -20,7 +24,5 @@ public sealed class ApplicationDbContext(DbContextOptions<ApplicationDbContext> 
         });
     }
 }
-
-
 
 

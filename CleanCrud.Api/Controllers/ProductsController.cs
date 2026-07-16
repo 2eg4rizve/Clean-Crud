@@ -1,10 +1,12 @@
 using CleanCrud.Application.Products;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace CleanCrud.Api.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
+[Authorize(Roles = "Admin,User")]
 public sealed class ProductsController(IProductService productService) : ControllerBase
 {
     [HttpGet]
