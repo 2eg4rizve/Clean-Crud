@@ -1,54 +1,52 @@
+using AutoMapper;
 using CleanCrud.Application.Contracts;
 using CleanCrud.Domain.Entities;
 
 namespace CleanCrud.Application.Products;
 
-public sealed class ProductService(IProductRepository repository) : IProductService
+public sealed class ProductService(IUnitOfWork unitOfWork, IMapper mapper) : IProductService
 {
     public async Task<IReadOnlyList<ProductDto>> GetAllAsync(CancellationToken cancellationToken = default) =>
-        (await repository.GetAllAsync(cancellationToken)).Select(ToDto).ToList();
+        mapper.Map<List<ProductDto>>(await unitOfWork.Products.GetAllAsync(cancellationToken));
 
     public async Task<ProductDto?> GetByIdAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var product = await repository.GetByIdAsync(id, cancellationToken);
-        return product is null ? null : ToDto(product);
+        var product = await unitOfWork.Products.GetByIdAsync(id, cancellationToken);
+        return product is null ? null : mapper.Map<ProductDto>(product);
     }
 
     public async Task<ProductDto> CreateAsync(CreateProductRequest request, CancellationToken cancellationToken = default)
     {
-        Validate(request.Name, request.Price, request.StockQuantity);
-        var product = new Product { Name = request.Name.Trim(), Description = request.Description?.Trim(), Price = request.Price, StockQuantity = request.StockQuantity };
-        await repository.AddAsync(product, cancellationToken);
-        return ToDto(product);
+        var product = mapper.Map<Product>(request);
+        Normalize(product);
+        await unitOfWork.Products.AddAsync(product, cancellationToken);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+        return mapper.Map<ProductDto>(product);
     }
 
     public async Task<ProductDto?> UpdateAsync(Guid id, UpdateProductRequest request, CancellationToken cancellationToken = default)
     {
-        Validate(request.Name, request.Price, request.StockQuantity);
-        var product = await repository.GetByIdAsync(id, cancellationToken);
+        var product = await unitOfWork.Products.GetByIdAsync(id, cancellationToken);
         if (product is null) return null;
-        product.Name = request.Name.Trim();
-        product.Description = request.Description?.Trim();
-        product.Price = request.Price;
-        product.StockQuantity = request.StockQuantity;
-        await repository.UpdateAsync(product, cancellationToken);
-        return ToDto(product);
+        mapper.Map(request, product);
+        Normalize(product);
+        unitOfWork.Products.Update(product);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
+        return mapper.Map<ProductDto>(product);
     }
 
     public async Task<bool> DeleteAsync(Guid id, CancellationToken cancellationToken = default)
     {
-        var product = await repository.GetByIdAsync(id, cancellationToken);
+        var product = await unitOfWork.Products.GetByIdAsync(id, cancellationToken);
         if (product is null) return false;
-        await repository.DeleteAsync(product, cancellationToken);
+        unitOfWork.Products.Delete(product);
+        await unitOfWork.SaveChangesAsync(cancellationToken);
         return true;
     }
 
-    private static void Validate(string name, decimal price, int stockQuantity)
+    private static void Normalize(Product product)
     {
-        if (string.IsNullOrWhiteSpace(name)) throw new ArgumentException("Name is required.");
-        if (price < 0) throw new ArgumentException("Price cannot be negative.");
-        if (stockQuantity < 0) throw new ArgumentException("Stock quantity cannot be negative.");
+        product.Name = product.Name.Trim();
+        product.Description = product.Description?.Trim();
     }
-
-    private static ProductDto ToDto(Product product) => new(product.Id, product.Name, product.Description, product.Price, product.StockQuantity, product.CreatedAtUtc);
 }

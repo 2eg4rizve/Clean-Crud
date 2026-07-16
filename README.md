@@ -5,8 +5,8 @@ Clean Architecture ASP.NET Core controller-based CRUD API for a `Product` model,
 ## Layers
 
 - `CleanCrud.Domain`: product entity.
-- `CleanCrud.Application`: use-case service, DTOs, and repository contract.
-- `CleanCrud.Infrastructure`: EF Core DbContext, SQL Server repository, and database migrations.
+- `CleanCrud.Application`: use-case service, DTOs, AutoMapper profile, generic repository and Unit of Work contracts.
+- `CleanCrud.Infrastructure`: EF Core DbContext, generic repository, Unit of Work implementation, and SQL Server migrations.
 - `CleanCrud.Api`: controllers, Swagger, dependency injection, and configuration.
 
 ## Run

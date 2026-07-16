@@ -1,7 +1,7 @@
+using AutoMapper;
 using CleanCrud.Application.Contracts;
 using CleanCrud.Application.Products;
 using CleanCrud.Infrastructure.Persistence;
-using CleanCrud.Infrastructure.Repositories;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,7 +11,8 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-builder.Services.AddScoped<IProductRepository, ProductRepository>();
+builder.Services.AddAutoMapper(_ => { }, typeof(ProductMappingProfile).Assembly);
+builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<IProductService, ProductService>();
 
 var app = builder.Build();
